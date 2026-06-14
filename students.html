@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Students Management{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Students</li>
+            </ol>
+        </nav>
+        
+        <h1 class="page-header">Students Management</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Add New Student</h5>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+                
+                <form action="{{ url_for('students') }}" method="post">
+                    <div class="mb-3">
+                        <label for="student_id" class="form-label">Student ID</label>
+                        <input type="text" class="form-control" id="student_id" name="student_id" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Add Student
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Student List</h5>
+                <span class="badge bg-primary">{{ students|length }} Students</span>
+            </div>
+            <div class="card-body">
+                {% if students %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.student_id }}</td>
+                                <td>{{ student.name }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('view_student', student_id=student.id) }}" class="btn btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('edit_student', student_id=student.id) }}" class="btn btn-outline-secondary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" title="Delete" onclick="deleteStudent({{ student.id }}, '{{ student.name }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No students found. Add your first student using the form.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function deleteStudent(studentId, studentName) {
+        if (confirm(`Are you sure you want to delete ${studentName}? This action cannot be undone.`)) {
+            fetch(`/student/${studentId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Student deleted successfully');
+                    location.reload(); // Refresh the page to update the list
+                } else {
+                    alert('Error deleting student: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting student');
+            });
+        }
+    }
+</script>
+{% endblock %}

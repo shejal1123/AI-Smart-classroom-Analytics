@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="row mt-5 mb-4">
+    <div class="col-md-12 text-center">
+        <h1 class="display-4 fw-bold text-primary">Smart Classroom</h1>
+        <p class="lead">Enhance teaching effectiveness through real-time emotion monitoring</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>Start a New Class</h4>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+                
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs" id="classTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="new-class-tab" data-bs-toggle="tab" data-bs-target="#new-class" type="button" role="tab">
+                            <i class="fas fa-plus me-1"></i>New Class
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="continue-class-tab" data-bs-toggle="tab" data-bs-target="#continue-class" type="button" role="tab">
+                            <i class="fas fa-play me-1"></i>Continue Class
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content mt-3" id="classTabContent">
+                    <!-- New Class Tab -->
+                    <div class="tab-pane fade show active" id="new-class" role="tabpanel">
+                        <form action="/" method="post">
+                            <input type="hidden" name="start_class" value="1">
+                            <div class="form-group mb-3">
+                                <label for="teacher_info" class="form-label">Teacher:</label>
+                                <input type="text" class="form-control" id="teacher_info" value="{{ request.cookies.get('teacher_name', 'Unknown') }} ({{ request.cookies.get('teacher_id', 'N/A') }})" readonly>
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="subject" class="form-label">Subject:</label>
+                                <input type="text" class="form-control" id="subject" name="subject" placeholder="Enter subject name" required>
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="camera_index" class="form-label">Select Camera:</label>
+                                <select class="form-select" id="camera_index" name="camera_index">
+                                    {% for camera in cameras %}
+                                        <option value="{{ camera }}">Camera {{ camera }}</option>
+                                    {% endfor %}
+                                    {% if not cameras %}
+                                        <option value="0">Default Camera</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" name="start_class" class="btn btn-success btn-lg">
+                                    <i class="fas fa-play-circle me-2"></i>Start New Class
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Continue Class Tab -->
+                    <div class="tab-pane fade" id="continue-class" role="tabpanel">
+                        <div id="recent-classes-list" class="mt-3">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading recent classes...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-cog me-2"></i>Management Tools</h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{{ url_for('students') }}" class="btn btn-outline-primary d-block py-3">
+                            <i class="fas fa-user-graduate fa-2x mb-2"></i><br>
+                            Manage Students
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-secondary d-block py-3" id="recent-classes-btn">
+                            <i class="fas fa-history fa-2x mb-2"></i><br>
+                            Recent Classes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if not request.cookies.get('teacher_name') %}
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-user-circle me-2"></i>Teacher Account</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Sign in to save your classes and access advanced features</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary d-block py-3">
+                            <i class="fas fa-sign-in-alt fa-2x mb-2"></i><br>
+                            Login
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-success d-block py-3">
+                            <i class="fas fa-user-plus fa-2x mb-2"></i><br>
+                            Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i>About Smart Classroom</h4>
+            </div>
+            <div class="card-body">
+                <p>Smart Classroom uses advanced emotion recognition technology to help teachers understand their students' engagement and emotional responses during class in real-time.</p>
+                
+                <h5 class="mt-4">Key Features:</h5>
+                <div class="row mt-3 g-3">
+                    <div class="col-md-6">
+                        <div class="feature-card p-3 border rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="feature-icon me-3 text-primary">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <h6 class="mb-0">Real-time Emotion Detection</h6>
+                            </div>
+                            <p class="text-muted small mb-0">Analyzes facial expressions to determine emotional states during class.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="feature-card p-3 border rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="feature-icon me-3 text-success">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h6 class="mb-0">Advanced Analytics</h6>
+                            </div>
+                            <p class="text-muted small mb-0">Visualize emotion trends and patterns throughout the class session.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="feature-card p-3 border rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="feature-icon me-3 text-warning">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <h6 class="mb-0">Teaching Insights</h6>
+                            </div>
+                            <p class="text-muted small mb-0">Receive actionable suggestions based on emotional responses.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="feature-card p-3 border rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="feature-icon me-3 text-info">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
+                                <h6 class="mb-0">Attendance Tracking</h6>
+                            </div>
+                            <p class="text-muted small mb-0">Manage student attendance with an easy-to-use interface.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-4 mb-0">
+                    <i class="fas fa-lock me-2"></i>
+                    <strong>Privacy Notice:</strong> All emotion data is processed locally and is only used to provide feedback to the teacher. No personal data is stored or shared with third parties.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Classes Modal -->
+<div class="modal fade" id="recentClassesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-history me-2"></i>Recent Classes
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Subject</th>
+                                <th>Teacher</th>
+                                <th>Dominant Emotion</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-classes-table">
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation for the form
+        const form = document.querySelector('form');
+        setTimeout(() => {
+            form.style.opacity = '1';
+        }, 300);
+        
+        // Tab functionality for continue class
+        const continueClassTab = document.getElementById('continue-class-tab');
+        continueClassTab.addEventListener('shown.bs.tab', function() {
+            loadRecentClasses();
+        });
+        
+        function loadRecentClasses() {
+            const recentClassesList = document.getElementById('recent-classes-list');
+            
+            fetch('/recent_classes')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        recentClassesList.innerHTML = `
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                <h5>No Recent Classes</h5>
+                                <p>Start your first class using the "New Class" tab.</p>
+                            </div>
+                        `;
+                    } else {
+                        let html = '<div class="row g-3">';
+                        data.slice(0, 6).forEach(cls => { // Show only last 6 classes
+                            const timeAgo = getTimeAgo(cls.date);
+                            html += `
+                                <div class="col-md-6">
+                                    <div class="card class-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-1">${cls.subject}</h6>
+                                                <span class="badge bg-${getEmotionColor(cls.dominant_emotion)}">
+                                                    <i class="fas ${getEmotionIcon(cls.dominant_emotion)} me-1"></i>
+                                                    ${cls.dominant_emotion}
+                                                </span>
+                                            </div>
+                                            <p class="card-text text-muted small mb-2">
+                                                <i class="fas fa-user me-1"></i>${cls.teacher_id} • 
+                                                <i class="fas fa-clock me-1"></i>${timeAgo}
+                                            </p>
+                                            <div class="btn-group w-100">
+                                                <a href="#" onclick="continueClass(${cls.id}, '${cls.subject}', '${cls.teacher_id}')" 
+                                                   class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-play me-1"></i>Continue
+                                                </a>
+                                                <a href="/analytics/${cls.id}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-chart-line"></i>
+                                                </a>
+                                                <a href="/attendance/${cls.id}" class="btn btn-outline-secondary btn-sm">
+                                                    <i class="fas fa-user-check"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        recentClassesList.innerHTML = html;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    recentClassesList.innerHTML = `
+                        <div class="alert alert-danger text-center">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Error loading recent classes. Please refresh the page.
+                        </div>
+                    `;
+                });
+        }
+        
+        // Continue existing class
+        function continueClass(classId, subject, teacherId) {
+            // Set cookies for the existing class
+            document.cookie = `class_id=${classId}; path=/`;
+            document.cookie = `camera_index=0; path=/`;
+            
+            // Show loading
+            showToast(`Continuing class: ${subject}`, 'info');
+            
+            // Redirect to class view
+            setTimeout(() => {
+                window.location.href = '/class';
+            }, 1000);
+        }
+        
+        // Recent classes modal functionality  
+        const recentClassesBtn = document.getElementById('recent-classes-btn');
+        const recentClassesModal = new bootstrap.Modal(document.getElementById('recentClassesModal'));
+        
+        recentClassesBtn.addEventListener('click', function() {
+            recentClassesModal.show();
+            loadRecentClassesModal();
+        });
+        
+        function loadRecentClassesModal() {
+            fetch('/recent_classes')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('recent-classes-table');
+                    
+                    if (data.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    No recent classes found.
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        let html = '';
+                        data.forEach(cls => {
+                            html += `
+                                <tr>
+                                    <td>${cls.date}</td>
+                                    <td>${cls.subject}</td>
+                                    <td>${cls.teacher_id}</td>
+                                    <td>
+                                        <span class="badge bg-${getEmotionColor(cls.dominant_emotion)}">
+                                            <i class="fas ${getEmotionIcon(cls.dominant_emotion)} me-1"></i>
+                                            ${cls.dominant_emotion}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/analytics/${cls.id}" class="btn btn-outline-primary">
+                                                <i class="fas fa-chart-line"></i>
+                                            </a>
+                                            <a href="/attendance/${cls.id}" class="btn btn-outline-secondary">
+                                                <i class="fas fa-user-check"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        tableBody.innerHTML = html;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('recent-classes-table').innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Error loading recent classes.
+                            </td>
+                        </tr>
+                    `;
+                });
+        }
+        
+        // Helper function to get emotion color
+        function getEmotionColor(emotion) {
+            const emotionColors = {
+                'happy': 'warning',
+                'sad': 'primary',
+                'angry': 'danger',
+                'fear': 'dark',
+                'surprise': 'success',
+                'neutral': 'secondary',
+                'disgust': 'info'
+            };
+            
+            return emotionColors[emotion.toLowerCase()] || 'secondary';
+        }
+        
+        // Helper function to get emotion icon
+        function getEmotionIcon(emotion) {
+            const emotionIcons = {
+                'happy': 'fa-smile',
+                'sad': 'fa-frown',
+                'angry': 'fa-angry',
+                'fear': 'fa-surprise',
+                'surprise': 'fa-surprise',
+                'neutral': 'fa-meh',
+                'disgust': 'fa-grimace'
+            };
+            
+            return emotionIcons[emotion.toLowerCase()] || 'fa-meh';
+        }
+        
+        // Helper function to get time ago
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInMs = now - date;
+            const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+            const diffInDays = Math.floor(diffInHours / 24);
+            
+            if (diffInHours < 1) {
+                return 'Just now';
+            } else if (diffInHours < 24) {
+                return `${diffInHours}h ago`;
+            } else if (diffInDays < 7) {
+                return `${diffInDays}d ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+        
+        // Make functions available globally
+        window.continueClass = continueClass;
+    });
+</script>
+{% endblock %}

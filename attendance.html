@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Management{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('class_view') }}">Class</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Attendance</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-check me-2"></i>Attendance
+                    </h4>
+                    <span class="badge bg-light text-dark">
+                        {{ format_datetime(class_info.date) }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>{{ class_info.subject }}</h5>
+                        <p class="text-muted">Teacher ID: {{ class_info.teacher_id }}</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="btn-group">
+                            <a href="{{ url_for('analytics', class_id=class_info.id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-chart-line me-1"></i> Analytics
+                            </a>
+                            <a href="{{ url_for('class_view') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Class
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Take Attendance</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('attendance', class_id=class_info.id) }}">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.student_id }}</td>
+                                    <td>{{ student.name }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" name="status_{{ student.id }}" id="present_{{ student.id }}" value="Present" autocomplete="off" 
+                                                {{ 'checked' if attendance.get(student.id) == 'Present' else '' }}>
+                                            <label class="btn btn-outline-success" for="present_{{ student.id }}">Present</label>
+                                            
+                                            <input type="radio" class="btn-check" name="status_{{ student.id }}" id="absent_{{ student.id }}" value="Absent" autocomplete="off"
+                                                {{ 'checked' if attendance.get(student.id) == 'Absent' else '' }}>
+                                            <label class="btn btn-outline-danger" for="absent_{{ student.id }}">Absent</label>
+                                            
+                                            <input type="radio" class="btn-check" name="status_{{ student.id }}" id="late_{{ student.id }}" value="Late" autocomplete="off"
+                                                {{ 'checked' if attendance.get(student.id) == 'Late' else '' }}>
+                                            <label class="btn btn-outline-warning" for="late_{{ student.id }}">Late</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary" id="save-attendance-btn">
+                            <i class="fas fa-save me-1"></i> Save Attendance
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Attendance Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Present</div>
+                            <div class="stat-value text-success">
+                                {{ attendance.values()|select("equalto", "Present")|list|length }}
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: {{ (attendance.values()|select("equalto", "Present")|list|length / students|length * 100)|round if students|length > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Absent</div>
+                            <div class="stat-value text-danger">
+                                {{ attendance.values()|select("equalto", "Absent")|list|length }}
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-danger" style="width: {{ (attendance.values()|select("equalto", "Absent")|list|length / students|length * 100)|round if students|length > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Late</div>
+                            <div class="stat-value text-warning">
+                                {{ attendance.values()|select("equalto", "Late")|list|length }}
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: {{ (attendance.values()|selectattr('==', 'Late')|list|length / students|length * 100)|round if students|length > 0 else 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <h6>Attendance Rate</h6>
+                    <div class="progress" style="height: 20px;">
+                        {% set present_pct = (attendance.values()|select("equalto", "Present")|list|length / students|length * 100)|round if students|length > 0 else 0 %}
+                        {% set late_pct = (attendance.values()|select("equalto", "Late")|list|length / students|length * 100)|round if students|length > 0 else 0 %}
+                        {% set absent_pct = (attendance.values()|select("equalto", "Absent")|list|length / students|length * 100)|round if students|length > 0 else 0 %}
+                        
+                        <div class="progress-bar bg-success" style="width: {{ present_pct }}%" 
+                            role="progressbar" aria-valuenow="{{ present_pct }}" aria-valuemin="0" aria-valuemax="100">
+                            Present ({{ present_pct }}%)
+                        </div>
+                        
+                        <div class="progress-bar bg-warning" style="width: {{ late_pct }}%" 
+                            role="progressbar" aria-valuenow="{{ late_pct }}" aria-valuemin="0" aria-valuemax="100">
+                            Late ({{ late_pct }}%)
+                        </div>
+                        
+                        <div class="progress-bar bg-danger" style="width: {{ absent_pct }}%" 
+                            role="progressbar" aria-valuenow="{{ absent_pct }}" aria-valuemin="0" aria-valuemax="100">
+                            Absent ({{ absent_pct }}%)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight the row when a status button is selected
+        document.querySelectorAll('.btn-check').forEach(button => {
+            button.addEventListener('change', function() {
+                // Get the table row (parent of parent of parent)
+                const row = this.closest('tr');
+                
+                // Remove all status-related classes
+                row.classList.remove('table-success', 'table-danger', 'table-warning');
+                
+                // Add appropriate class based on selection
+                if (this.value === 'Present') {
+                    row.classList.add('table-success');
+                } else if (this.value === 'Absent') {
+                    row.classList.add('table-danger');
+                } else if (this.value === 'Late') {
+                    row.classList.add('table-warning');
+                }
+            });
+            
+            // Trigger change event for pre-selected radio buttons
+            if (button.checked) {
+                button.dispatchEvent(new Event('change'));
+            }
+        });
+        
+        // Add visual feedback for save button
+        const form = document.querySelector('form');
+        const saveBtn = document.getElementById('save-attendance-btn');
+        
+        if (form && saveBtn) {
+            form.addEventListener('submit', function() {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+            });
+        }
+    });
+</script>
+{% endblock %}

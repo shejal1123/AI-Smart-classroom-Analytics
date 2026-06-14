@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block additional_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('class_view') }}">Class</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+            </ol>
+        </nav>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Class Analytics
+                    </h4>
+                    <span class="badge bg-light text-dark">
+                        {{ format_datetime(class_info.date) }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>{{ class_info.subject }}</h5>
+                        <p class="text-muted">Teacher ID: {{ class_info.teacher_id }}</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="btn-group">
+                            <a href="{{ url_for('attendance', class_id=class_info.id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-check me-1"></i> Attendance
+                            </a>
+                            <a href="{{ url_for('class_view') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Class
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <span class="stat-label">Total Readings</span>
+                <span class="stat-value">{{ readings|length }}</span>
+                <span class="text-muted">data points</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Average Students</span>
+                <span class="stat-value">{{ avg_face_count|round(1) }}</span>
+                <span class="text-muted">per capture</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Dominant Emotion</span>
+                {% if emotions_data %}
+                    {% set dominant = emotions_data|dictsort(by='value')|last %}
+                    <span class="stat-value">
+                        <i class="fas {{ get_emotion_icon(dominant[0]) }} text-{{ get_emotion_color(dominant[0]) }}"></i>
+                    </span>
+                    <span class="text-{{ get_emotion_color(dominant[0]) }}">{{ dominant[0]|title }}</span>
+                {% else %}
+                    <span class="stat-value">-</span>
+                    <span class="text-muted">No data</span>
+                {% endif %}
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Class Duration</span>
+                {% if readings|length > 1 %}
+                    {% set duration = (readings|last).timestamp - (readings|first).timestamp %}
+                    {% set minutes = (duration.total_seconds() / 60)|int %}
+                    <span class="stat-value">{{ minutes }}</span>
+                    <span class="text-muted">minutes</span>
+                {% else %}
+                    <span class="stat-value">-</span>
+                    <span class="text-muted">Not enough data</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Emotion Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="emotionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Emotion Timeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Teaching Insights</h5>
+            </div>
+            <div class="card-body">
+                {% if emotions_data %}
+                    {% set dominant = emotions_data|dictsort(by='value')|last %}
+                    <div class="alert alert-{{ get_emotion_color(dominant[0]) }} bg-opacity-10">
+                        <h5 class="alert-heading">
+                            <i class="fas {{ get_emotion_icon(dominant[0]) }} me-2"></i>
+                            Predominant Emotion: {{ dominant[0]|title }}
+                        </h5>
+                        <p>{{ emotion_info[dominant[0]].description }}</p>
+                        <hr>
+                        <p class="mb-0"><strong>Educational Impact:</strong> {{ emotion_info[dominant[0]].educational_impact }}</p>
+                        <p class="mb-0"><strong>Teaching Tip:</strong> {{ emotion_info[dominant[0]].teaching_tip }}</p>
+                    </div>
+                    
+                    {% if emotions_data|length > 1 %}
+                        {% set secondary = emotions_data|dictsort(by='value')|reverse|slice(1, 2)|first %}
+                        <div class="alert alert-{{ get_emotion_color(secondary[0]) }} bg-opacity-10">
+                            <h5 class="alert-heading">
+                                <i class="fas {{ get_emotion_icon(secondary[0]) }} me-2"></i>
+                                Secondary Emotion: {{ secondary[0]|title }}
+                            </h5>
+                            <p>{{ emotion_info[secondary[0]].description }}</p>
+                            <p class="mb-0"><strong>Teaching Tip:</strong> {{ emotion_info[secondary[0]].teaching_tip }}</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Not Enough Data</h5>
+                        <p>Capture more emotion readings to receive teaching insights.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Class Notes</h5>
+            </div>
+            <div class="card-body">
+                <form id="notesForm">
+                    <div class="mb-3">
+                        <label for="summary" class="form-label">Class Summary</label>
+                        <textarea class="form-control" id="summary" name="summary" rows="2">{{ class_info.summary or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Detailed Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="5">{{ class_info.notes or '' }}</textarea>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" id="saveNotes" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Notes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prepare data for emotion distribution chart
+        const emotionLabels = [];
+        const emotionData = [];
+        const emotionColors = [];
+        
+        {% for emotion, count in emotions_data.items() %}
+            emotionLabels.push('{{ emotion|title }}');
+            emotionData.push({{ count }});
+            
+            // Get color for this emotion
+            let color;
+            switch('{{ emotion }}') {
+                case 'happy': color = '#f1c40f'; break;
+                case 'sad': color = '#3498db'; break;
+                case 'angry': color = '#e74c3c'; break;
+                case 'fear': color = '#8e44ad'; break;
+                case 'surprise': color = '#2ecc71'; break;
+                case 'neutral': color = '#bdc3c7'; break;
+                case 'disgust': color = '#9b59b6'; break;
+                default: color = '#95a5a6';
+            }
+            emotionColors.push(color);
+        {% endfor %}
+        
+        // Create emotions chart
+        const emotionsCtx = document.getElementById('emotionsChart').getContext('2d');
+        const emotionsChart = new Chart(emotionsCtx, {
+            type: 'pie',
+            data: {
+                labels: emotionLabels,
+                datasets: [{
+                    data: emotionData,
+                    backgroundColor: emotionColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Timeline chart
+        const timelineData = {{ timeline_data|safe }};
+        
+        if (timelineData.length > 0) {
+            const timestamps = timelineData.map(item => item.timestamp);
+            
+            // Create datasets for each emotion
+            const emotions = ['happy', 'sad', 'angry', 'fear', 'surprise', 'neutral', 'disgust'];
+            const datasets = emotions.map(emotion => {
+                // For each emotion, create a dataset that shows 1 when present, 0 when absent
+                const data = timelineData.map(item => item.emotion === emotion ? 1 : 0);
+                
+                // Get color for this emotion
+                let color;
+                switch(emotion) {
+                    case 'happy': color = '#f1c40f'; break;
+                    case 'sad': color = '#3498db'; break;
+                    case 'angry': color = '#e74c3c'; break;
+                    case 'fear': color = '#8e44ad'; break;
+                    case 'surprise': color = '#2ecc71'; break;
+                    case 'neutral': color = '#bdc3c7'; break;
+                    case 'disgust': color = '#9b59b6'; break;
+                    default: color = '#95a5a6';
+                }
+                
+                return {
+                    label: emotion.charAt(0).toUpperCase() + emotion.slice(1),
+                    data: data,
+                    backgroundColor: color,
+                    borderColor: color,
+                    fill: false,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    showLine: true
+                };
+            });
+            
+            // Filter out emotions that don't appear in the timeline
+            const filteredDatasets = datasets.filter(dataset => 
+                dataset.data.some(value => value === 1)
+            );
+            
+            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+            const timelineChart = new Chart(timelineCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: filteredDatasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'category',
+                            labels: timestamps,
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 1.2,
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Save notes functionality
+        document.getElementById('saveNotes').addEventListener('click', function() {
+            const notes = document.getElementById('notes').value;
+            const summary = document.getElementById('summary').value;
+            
+            fetch('/update_notes/{{ class_info.id }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `notes=${encodeURIComponent(notes)}&summary=${encodeURIComponent(summary)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show success message
+                    alert('Notes saved successfully');
+                } else {
+                    // Show error message
+                    alert('Error saving notes: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving notes');
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Quick Start - Smart Classroom{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-info text-white text-center">
+                <h3 class="mb-0"><i class="fas fa-rocket me-2"></i>Quick Start Demo</h3>
+                <p class="mb-0 mt-2">Start using the Smart Classroom immediately without registration</p>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    <input type="hidden" name="start_class" value="1">
+                    
+                    <div class="form-group mb-3">
+                        <label for="teacher_id" class="form-label">Teacher ID (Optional):</label>
+                        <input type="text" class="form-control" id="teacher_id" name="teacher_id" 
+                               placeholder="Enter your name or leave blank for demo" value="Demo Teacher">
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="subject" class="form-label">Subject:</label>
+                        <input type="text" class="form-control" id="subject" name="subject" 
+                               placeholder="Enter subject name" value="Demo Class" required>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label for="camera_index" class="form-label">Select Camera:</label>
+                        <select name="camera_index" class="form-select" required>
+                            {% for camera in cameras %}
+                            <option value="{{ camera }}">Camera {{ camera }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-info btn-lg">
+                            <i class="fas fa-play me-2"></i>Start Demo Class
+                        </button>
+                    </div>
+                </form>
+                
+                <hr>
+                <div class="text-center">
+                    <p class="text-muted mb-2">Want to save your classes and access full features?</p>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-success">
+                            <i class="fas fa-user-plus me-1"></i>Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

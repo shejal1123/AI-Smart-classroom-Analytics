@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Student{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('students') }}">Students</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('view_student', student_id=student.id) }}">{{ student.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-edit me-2"></i>Edit Student
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+                
+                <form action="{{ url_for('edit_student', student_id=student.id) }}" method="post">
+                    <div class="mb-3">
+                        <label for="student_id" class="form-label">Student ID</label>
+                        <input type="text" class="form-control" id="student_id" name="student_id" 
+                               value="{{ student.student_id }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ student.name }}" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('view_student', student_id=student.id) }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
