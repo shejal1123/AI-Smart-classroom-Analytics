@@ -1,32 +1,82 @@
-# AI-Smart-classroom-Analytics
-AI Smart Classroom Analytics is a web-based application developed to help teachers and educational institutions monitor classroom activities more effectively. The system uses artificial intelligence and computer vision techniques to collect and analyze classroom data such as attendance, student participation, and engagement levels.
+An intelligent classroom system that uses emotion recognition to monitor student engagement during classes.
 
-The main purpose of this project is to provide useful insights that can help teachers understand student behavior and improve the learning environment. Instead of manually maintaining records, the system automatically processes classroom information and presents it through an easy-to-use dashboard.
+Smart Classroom
+
+Overview
+Smart Classroom is a Flask-based web application that enables teachers to monitor student emotions in real-time using computer vision. The system captures emotions through webcams and provides insights to help teachers adapt their teaching methods based on student engagement.
 
 Features
-Automated attendance management
-Face recognition for student identification
-Student engagement monitoring
-Classroom activity analysis
-Performance tracking and reporting
-Interactive dashboard with visual analytics
-Data storage and management
-Secure user authentication
-Working
+Real-time Emotion Detection: Analyze student facial expressions to determine emotional states during class
+Camera Selection: Choose which camera to use for emotion detection
+Advanced Analytics: Visualize emotion trends and patterns throughout the session
+Teaching Insights: Receive actionable suggestions based on detected emotions
+Student Management: Track student attendance and participation
+Emotion Timeline: See how emotions change during the class period
+Image Capture: Review captured images for each emotion reading
+Multi-face Detection: Count how many students are detected in each capture
+Class Notes: Add notes and summaries for each class session
+SQLite Database: Local storage without installation requirements
+Technology Stack
+Backend: Python, Flask
+Frontend: Bootstrap 5, Chart.js
+Database: SQLite with SQLAlchemy
+Computer Vision: OpenCV, DeepFace
+UI Components: Font Awesome, Custom CSS
+Setup and Installation
+Clone the repository:
 
-The system captures classroom data through a camera feed and processes it using computer vision algorithms. Students are identified using facial recognition, and attendance is recorded automatically. The collected data is analyzed to generate reports on attendance, participation, and engagement.
+git clone https://github.com/yourusername/smart-classroom.git
+cd smart-classroom
+Set up a virtual environment (recommended):
 
-Teachers can view these reports through the dashboard and use the information to monitor classroom performance and identify areas that need improvement.
+python -m venv venv
+source venv/bin/activate   # On Windows: venv\Scripts\activate
+Install the requirements:
 
-Project Objectives
-Reduce manual attendance work
-Improve classroom monitoring
-Provide data-driven insights for teachers
-Track student participation and engagement
-Support better decision-making in educational institutions
-Future Improvements
-Mobile application support
-Real-time notifications
-Integration with learning management systems
-Advanced performance prediction
-Multi-classroom monitoring
+pip install -r requirements.txt
+Initialize the database (only needed first time):
+
+python db_setup.py
+Run the application:
+
+python app.py
+Troubleshooting Database Issues
+If you encounter database access errors:
+
+Make sure the instance directory exists and has proper permissions:
+
+mkdir -p instance
+chmod 777 instance
+Run the database setup script:
+
+python db_setup.py
+Check the console output for the database path and make sure it's accessible.
+
+Usage Guide
+Starting a Class:
+
+Enter your teacher ID and subject name
+Select your preferred camera
+Click "Start Class"
+Capturing Emotions:
+
+Click "Capture Emotion" to take a snapshot
+Enable "Auto-Capture" for periodic readings
+View real-time emotional insights
+Analytics Dashboard:
+
+View emotion distribution charts
+See emotion timeline throughout the class
+Get teaching suggestions based on predominant emotions
+Student Management:
+
+Add students to the system
+Track attendance for each class
+View attendance statistics
+Key Directories and Files
+/app.py - Main application file
+/emotions.py - Emotion detection module
+/db_setup.py - Database initialization
+/static/ - CSS and captured images
+/templates/ - HTML templates
+/instance/ - SQLite database
